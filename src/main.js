@@ -6,6 +6,18 @@ const visualiser = new Visualiser();
 
 /** Creating various UI elements. */
 
+let fisheyeLabel = document.createElement("label");
+fisheyeLabel.textContent = "enable fisheye effect (does nothing right now)";
+
+let fisheyeToggle = document.createElement("input");
+fisheyeToggle.type = "checkbox";
+fisheyeToggle.checked = false;
+fisheyeToggle.addEventListener("click", (_) => {
+  visualiser.setFisheye(fisheyeToggle.checked)
+})
+fisheyeLabel.appendChild(fisheyeToggle);
+document.body.appendChild(fisheyeLabel);
+
 let cubeControlsTable = document.createElement("table");
 document.body.appendChild(cubeControlsTable);
 
@@ -19,7 +31,7 @@ document.body.appendChild(addCubeBtn);
   * controls table.
   */
 function addCubeToVisualiser() {
-  let cube = visualiser.add_cube(1, new THREE.Vector3(0, 0, 0));
+  let cube = visualiser.addCube(1, new THREE.Vector3(0, 0, 0));
   updateCubeControls(cube);
 }
 
@@ -75,11 +87,35 @@ function updateCubeControls(obj) {
   }
   tr.appendChild(propertiesCol);
 
+  let lineColourLabel = document.createElement("label");
+  lineColourLabel.textContent = "perpsective line colour (hex):";
+  let lineColourInput = document.createElement("input");
+  lineColourInput.size = 6;
+  lineColourInput.addEventListener("input", (_) => {
+    let hexColour = parseInt(lineColourInput.value, 16);
+    obj.lineMaterial.color.setHex(hexColour);
+  })
+  lineColourLabel.appendChild(lineColourInput);
+  tr.appendChild(lineColourLabel);
+
+  let lineVisibleLabel = document.createElement("label");
+  lineVisibleLabel.textContent = "perspective lines visible: ";
+
+  let lineVisibleToggle = document.createElement("input");
+  lineVisibleToggle.type = "checkbox";
+  lineVisibleToggle.checked = true;
+  lineVisibleToggle.addEventListener("click", (_) => {
+    obj.setPerspectiveLineVisibility(lineVisibleToggle.checked);
+  })
+
+  lineVisibleLabel.appendChild(lineVisibleToggle);
+  tr.appendChild(lineVisibleLabel);
+
   let deleteCol = document.createElement("td");
   let deleteCubeBtn = document.createElement("button");
   deleteCubeBtn.textContent = "delete cube";
   deleteCubeBtn.onclick = () => {
-    visualiser.delete_cube(obj.id);
+    visualiser.deleteCube(obj.id);
     cubeControlsTable.removeChild(tr);
   };
   deleteCol.appendChild(deleteCubeBtn);

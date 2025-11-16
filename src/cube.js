@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { Axis } from './util'
 
-const CUBE_MATERIAL = new THREE.MeshBasicMaterial({color: 0xaaaaaa});
-const LINE_MATERIAL = new THREE.MeshBasicMaterial({color: 0xff0000});
+const CUBE_MATERIAL = new THREE.MeshStandardMaterial({color: 0xaaaaaa});
+const WF_MATERIAL = new THREE.MeshStandardMaterial({color: 0x000000, wireframe: true});
 const VP_DISTANCE = -10000;
 
 /**
@@ -13,8 +13,9 @@ class PerspectiveLine {
   /**
     * @param {THREE.Vector3} position - starting position (i.e. cube vertex)
     * @param {Axis} vpDirection - direction towards the vanishing point
+    * @param {THREE.MeshBasicMaterial} lineMaterial - perspective line material
     */
-  constructor(position, vpDirection) {
+  constructor(position, vpDirection, lineMaterial) {
     let vpPosition;
     switch(vpDirection) {
       case Axis.X:
@@ -32,7 +33,7 @@ class PerspectiveLine {
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
    
     // Actual THREE.Object3D
-    this.line = new THREE.Line(geometry, LINE_MATERIAL);
+    this.line = new THREE.Line(geometry, lineMaterial);
   }
 }
 
@@ -49,12 +50,21 @@ export class VPCube {
     this.size = size;
     this.position = position;
     this.perspectiveLines = [];
+    this.lineMaterial = new THREE.MeshBasicMaterial({color: 0xff0000});
 
     // Actual THREE.Object3D
     this.mesh = new THREE.Mesh(
       new THREE.BoxGeometry(size, size, size),
       CUBE_MATERIAL
     );
+
+    //
+    this.wireframe = new THREE.Mesh(
+      new THREE.BoxGeometry(size, size, size),
+      WF_MATERIAL
+    );
+    this.wireframe.renderOrder = 1;
+    this.mesh.add(this.wireframe);
 
     this.addPerspectiveLines();
   }
@@ -68,55 +78,55 @@ export class VPCube {
     // Vanishing points to Z
     this.perspectiveLines.push(new PerspectiveLine(new
       THREE.Vector3(lineOffset, lineOffset, lineOffset),
-      Axis.Z)
+      Axis.Z, this.lineMaterial)
     );
     this.perspectiveLines.push(new PerspectiveLine(new
       THREE.Vector3(-lineOffset, lineOffset, lineOffset),
-      Axis.Z)
+      Axis.Z, this.lineMaterial)
     );
     this.perspectiveLines.push(new PerspectiveLine(new
       THREE.Vector3(lineOffset, -lineOffset, lineOffset),
-      Axis.Z)
+      Axis.Z, this.lineMaterial)
     );
     this.perspectiveLines.push(new PerspectiveLine(new
       THREE.Vector3(-lineOffset, -lineOffset, lineOffset),
-      Axis.Z)
+      Axis.Z, this.lineMaterial)
     );
 
     // Vanishing points to Y
     this.perspectiveLines.push(new PerspectiveLine(new
       THREE.Vector3(lineOffset, lineOffset, lineOffset),
-      Axis.Y)
+      Axis.Y, this.lineMaterial)
     );
     this.perspectiveLines.push(new PerspectiveLine(new
       THREE.Vector3(-lineOffset, lineOffset, lineOffset),
-      Axis.Y)
+      Axis.Y, this.lineMaterial)
     );
     this.perspectiveLines.push(new PerspectiveLine(new
       THREE.Vector3(lineOffset, lineOffset, -lineOffset),
-      Axis.Y)
+      Axis.Y, this.lineMaterial)
     );
     this.perspectiveLines.push(new PerspectiveLine(new
       THREE.Vector3(-lineOffset, lineOffset, -lineOffset),
-      Axis.Y)
+      Axis.Y, this.lineMaterial)
     );
 
     // Vanishing points to X
     this.perspectiveLines.push(new PerspectiveLine(new
       THREE.Vector3(lineOffset, lineOffset, lineOffset),
-      Axis.X)
+      Axis.X, this.lineMaterial)
     );
     this.perspectiveLines.push(new PerspectiveLine(new
       THREE.Vector3(lineOffset, lineOffset, -lineOffset),
-      Axis.X)
+      Axis.X, this.lineMaterial)
     );
     this.perspectiveLines.push(new PerspectiveLine(new
       THREE.Vector3(lineOffset, -lineOffset, lineOffset),
-      Axis.X)
+      Axis.X, this.lineMaterial)
     );
     this.perspectiveLines.push(new PerspectiveLine(new
       THREE.Vector3(lineOffset, -lineOffset, -lineOffset),
-      Axis.X)
+      Axis.X, this.lineMaterial)
     );
 
     this.perspectiveLines.forEach((p) => this.mesh.add(p.line));
@@ -184,5 +194,15 @@ export class VPCube {
         this.mesh.position.z = amount;
         break;
     }
+  }
+
+  /**
+    * Set the visiblity of each perspective line.
+    * @param {bool} value
+    */
+  setPerspectiveLineVisibility(value) {
+    this.perspectiveLines.forEach((pl) => {
+      pl.line.visible = value;
+    });
   }
 }
